@@ -1,0 +1,102 @@
+#include <iostream>
+#include <fstream>
+#include <cstdio>   // for remove()
+using namespace std;
+
+struct FileData {
+    char filename[50];
+};
+
+// Function declarations
+void createFile();
+void readFile();
+void deleteFile();
+
+int main() {
+    int choice;
+
+    do {
+        cout << "\n===== Simple File System =====\n";
+        cout << "1. Create File\n";
+        cout << "2. Read File\n";
+        cout << "3. Delete File\n";
+        cout << "4. Exit\n";
+        cout << "Enter your choice: ";
+        cin >> choice;
+
+        switch (choice) {
+            case 1: createFile(); break;
+            case 2: readFile(); break;
+            case 3: deleteFile(); break;
+            case 4: cout << "Exiting program...\n"; break;
+            default: cout << "Invalid choice! Try again.\n";
+        }
+    } while (choice != 4);
+
+    return 0;
+}
+
+// Create file
+void createFile() {
+    FileData f;
+    ofstream file;
+
+    cout << "Enter file name to create: ";
+    cin >> f.filename;
+
+    file.open(f.filename);
+
+    if (!file) {
+        cout << "Error creating file!\n";
+        return;
+    }
+
+    cout << "Enter content (end with Ctrl+Z):\n";
+    cin.ignore();
+    char ch;
+    while (cin.get(ch)) {
+        file.put(ch);
+    }
+
+    file.close();
+    cin.clear();
+
+    cout << "File created successfully!\n";
+}
+
+// Read file
+void readFile() {
+    FileData f;
+    ifstream file;
+    char ch;
+
+    cout << "Enter file name to read: ";
+    cin >> f.filename;
+
+    file.open(f.filename);
+
+    if (!file) {
+        cout << "Error: File does not exist!\n";
+        return;
+    }
+
+    cout << "\n--- File Content ---\n";
+    while (file.get(ch)) {
+        cout << ch;
+    }
+
+    file.close();
+}
+
+// Delete file
+void deleteFile() {
+    FileData f;
+
+    cout << "Enter file name to delete: ";
+    cin >> f.filename;
+
+    if (remove(f.filename) == 0)
+        cout << "File deleted successfully!\n";
+    else
+        cout << "Error: File not found or cannot be deleted!\n";
+}
