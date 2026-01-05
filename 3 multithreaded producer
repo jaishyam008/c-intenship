@@ -1,0 +1,80 @@
+#include <iostream>
+#include <pthread.h>
+#include <unistd.h>   // for sleep()
+using namespace std;
+
+#define BUFFER_SIZE 5
+
+int buffer[BUFFER_SIZE];
+int count = 0;
+
+// Mutex and condition variables
+pthread_mutex_t mutex;
+pthread_cond_t notFull;
+pthread_cond_t notEmpty;
+
+// Producer function
+void* producer(void* arg) {
+    for (int i = 1; i <= 10; i++) {
+        pthread_mutex_lock(&mutex);
+
+        // Wait if buffer is full
+        while (count == BUFFER_SIZE) {
+            pthread_cond_wait(&notFull, &mutex);
+        }
+
+        buffer[count++] = i;
+        cout << "Produced: " << i << endl;
+
+        pthread_cond_signal(&notEmpty);
+        pthread_mutex_unlock(&mutex);
+
+        sleep(1);
+    }
+    return NULL;
+}
+
+// Consumer function
+void* consumer(void* arg) {
+    for (int i = 1; i <= 10; i++) {
+        pthread_mutex_lock(&mutex);
+
+        // Wait if buffer is empty
+        while (count == 0) {
+            pthread_cond_wait(&notEmpty, &mutex);
+        }
+
+        int item = buffer[--count];
+        cout << "Consumed: " << item << endl;
+
+        pthread_cond_signal(&notFull);
+        pthread_mutex_unlock(&mutex);
+
+        sleep(1);
+    }
+    return NULL;
+}
+
+int main() {
+    pthread_t prod, cons;
+
+    // Initialize mutex and condition variables
+    pthread_mutex_init(&mutex, NULL);
+    pthread_cond_init(&notFull, NULL);
+    pthread_cond_init(&notEmpty, NULL);
+
+    // Create threads
+    pthread_create(&prod, NULL, producer, NULL);
+    pthread_create(&cons, NULL, consumer, NULL);
+
+    // Wait for threads to finish
+    pthread_join(prod, NULL);
+    pthread_join(cons, NULL);
+
+    // Destroy mutex and condition variables
+    pthread_mutex_destroy(&mutex);
+    pthread_cond_destroy(&notFull);
+    pthread_cond_destroy(&notEmpty);
+
+    return 0;
+}
